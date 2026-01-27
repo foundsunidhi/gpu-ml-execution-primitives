@@ -8,15 +8,13 @@ architecture:
   primary_products:
     - A100
 
-objective: >
+objective:
   Document the NVIDIA Ampere GPU microarchitecture as an instantiation
   of the unified GPU taxonomy, highlighting advances in tensor
   computation, memory movement, and instruction-level parallelism
   for modern ML workloads.
 
-# ------------------------------------------------------------
 # Compute Hierarchy
-# ------------------------------------------------------------
 
 compute_hierarchy:
   processing_unit:
@@ -36,9 +34,7 @@ compute_hierarchy:
       issue_model: Independent thread scheduling
       dual_issue_fp32: true
 
-# ------------------------------------------------------------
 # Matrix / Tensor Acceleration Units
-# ------------------------------------------------------------
 
 matrix_units:
   name: Tensor Cores
@@ -76,9 +72,7 @@ matrix_units:
     - CUDA MMA API
     - PTX MMA instructions
 
-# ------------------------------------------------------------
 # Memory Hierarchy
-# ------------------------------------------------------------
 
 memory_hierarchy:
   registers:
@@ -103,9 +97,7 @@ memory_hierarchy:
     capacity: 40 GB
     bandwidth: 1555 GB/s
 
-# ------------------------------------------------------------
 # Instruction Set Architecture Features
-# ------------------------------------------------------------
 
 isa_features:
   matrix_math:
@@ -122,9 +114,7 @@ isa_features:
     - Warp-level primitives (__shfl, __syncwarp)
     - Asynchronous barriers (mbarrier)
 
-# ------------------------------------------------------------
 # Performance Characteristics
-# ------------------------------------------------------------
 
 performance_characteristics:
   compute_throughput:
@@ -140,9 +130,7 @@ performance_characteristics:
     max_warps_per_sm: 64
     max_blocks_per_sm: 32
 
-# ------------------------------------------------------------
 # Architectural Innovations (Relative to Volta)
-# ------------------------------------------------------------
 
 architectural_innovations:
   - TF32 format enabling transparent acceleration of FP32 workloads
@@ -151,9 +139,7 @@ architectural_innovations:
   - Dual FP32 execution pipelines
   - Dramatically enlarged L2 cache
 
-# ------------------------------------------------------------
 # Source Attribution
-# ------------------------------------------------------------
 
 sources:
   official_documents:

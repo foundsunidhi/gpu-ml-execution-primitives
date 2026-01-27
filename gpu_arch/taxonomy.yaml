@@ -1,6 +1,6 @@
 schema_version: 1.0
 
-objective: >
+objective:
   Establish a unified taxonomy of modern GPU architectures relevant to
   machine learning workloads. This taxonomy standardizes terminology
   across vendors and defines the architectural dimensions analyzed
@@ -17,9 +17,7 @@ scope:
     - Convolutional Neural Networks
     - Elementwise and Reduction Kernels
 
-# ------------------------------------------------------------
 # Vendor and Generation Index
-# ------------------------------------------------------------
 
 vendors:
   NVIDIA:
@@ -53,9 +51,7 @@ vendors:
       - name: Xe-HPC
         launch_year: 2022
 
-# ------------------------------------------------------------
 # Compute Hierarchy Taxonomy
-# ------------------------------------------------------------
 
 compute_hierarchy:
   processing_unit:
@@ -80,9 +76,7 @@ compute_hierarchy:
       - Independent thread issue
       - Scoreboarding and dependency tracking
 
-# ------------------------------------------------------------
 # Matrix / Tensor Acceleration Units
-# ------------------------------------------------------------
 
 matrix_units:
   NVIDIA:
@@ -105,9 +99,7 @@ matrix_units:
     programming_models:
       - DPAS instructions
 
-# ------------------------------------------------------------
 # Memory Hierarchy Taxonomy
-# ------------------------------------------------------------
 
 memory_hierarchy:
   levels:
@@ -122,9 +114,7 @@ memory_hierarchy:
     - Latency hierarchy
     - Software-managed vs hardware-managed caching
 
-# ------------------------------------------------------------
 # Instruction Set Architecture (ISA) Features
-# ------------------------------------------------------------
 
 isa_features:
   categories:
@@ -138,9 +128,7 @@ isa_features:
       - Warp-level primitives
       - Barrier and fence operations
 
-# ------------------------------------------------------------
 # Performance Modeling Axes
-# ------------------------------------------------------------
 
 performance_axes:
   - Compute throughput (FLOPS / OPS)
@@ -149,9 +137,7 @@ performance_axes:
   - Occupancy
   - Instruction-level parallelism
 
-# ------------------------------------------------------------
 # Source Classes
-# ------------------------------------------------------------
 
 source_classes:
   - Official vendor architecture whitepapers
