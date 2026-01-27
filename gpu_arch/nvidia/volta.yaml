@@ -1,0 +1,135 @@
+schema_version: 1.0
+
+architecture:
+  vendor: NVIDIA
+  name: Volta
+  compute_capability: 7.0
+  launch_year: 2017
+  primary_products:
+    - Tesla V100
+
+objective: >
+  Document the NVIDIA Volta GPU microarchitecture as an instantiation
+  of the unified GPU taxonomy, with emphasis on execution model,
+  memory hierarchy, and matrix acceleration relevant to ML workloads.
+
+# ------------------------------------------------------------
+# Compute Hierarchy (Aligned with taxonomy.compute_hierarchy)
+# ------------------------------------------------------------
+
+compute_hierarchy:
+  processing_unit:
+    name: Streaming Multiprocessor (SM)
+    count_per_gpu: 80            # Tesla V100 SXM2
+    cores_per_sm:
+      fp32_cores: 64
+      fp64_cores: 32
+      int32_cores: 64
+
+  thread_group:
+    name: Warp
+    width: 32
+    scheduling:
+      warp_schedulers_per_sm: 4
+      dispatch_units_per_sm: 8
+      issue_model: Independent thread scheduling
+
+# ------------------------------------------------------------
+# Matrix / Tensor Acceleration Units
+# ------------------------------------------------------------
+
+matrix_units:
+  name: Tensor Cores
+  generation: First-generation Tensor Cores
+  units_per_sm: 8
+  operations_supported:
+    - D = A × B + C
+  supported_precisions:
+    - FP16 input
+    - FP32 accumulate
+  peak_tensor_throughput:
+    fp16_tensor_ops: 125 TFLOPS (V100 SXM2)
+
+  programming_interfaces:
+    - CUDA WMMA API
+    - PTX MMA instructions
+
+# ------------------------------------------------------------
+# Memory Hierarchy (Aligned with taxonomy.memory_hierarchy)
+# ------------------------------------------------------------
+
+memory_hierarchy:
+  registers:
+    register_file_size_per_sm: 256 KB
+    max_registers_per_thread: 255
+
+  shared_memory:
+    size_per_sm: 96 KB
+    configuration:
+      - 64 KB shared / 32 KB L1
+      - 32 KB shared / 64 KB L1
+    bank_width: 4 bytes
+
+  l1_cache:
+    unified_with_shared: true
+    cache_line_size: 128 bytes
+
+  l2_cache:
+    total_size: 6 MB
+    cache_line_size: 64 bytes
+
+  device_memory:
+    type: HBM2
+    capacity: 16 GB
+    bandwidth: 900 GB/s
+
+# ------------------------------------------------------------
+# Instruction Set Architecture Features
+# ------------------------------------------------------------
+
+isa_features:
+  matrix_math:
+    - HMMA instructions (FP16)
+    - FMA (FP32, FP64)
+
+  memory:
+    - Unified L1 / Shared memory
+    - Coalesced global memory access
+    - Read-only data cache (__ldg)
+
+  synchronization:
+    - Warp-level primitives (__shfl, __syncwarp)
+    - Cooperative Groups
+    - Thread block barriers (__syncthreads)
+
+# ------------------------------------------------------------
+# Performance Characteristics (Aligned with taxonomy.performance_axes)
+# ------------------------------------------------------------
+
+performance_characteristics:
+  compute_throughput:
+    fp32_peak: 15.7 TFLOPS
+    fp64_peak: 7.8 TFLOPS
+
+  memory_system:
+    l2_bandwidth: High-throughput shared across SMs
+    hbm_bandwidth: Bottleneck for memory-bound kernels
+
+  occupancy_factors:
+    max_threads_per_sm: 2048
+    max_warps_per_sm: 64
+    max_blocks_per_sm: 32
+
+# ------------------------------------------------------------
+# Source Attribution
+# ------------------------------------------------------------
+
+sources:
+  official_documents:
+    - NVIDIA Volta Architecture Whitepaper
+    - NVIDIA Tesla V100 GPU Datasheet
+    - CUDA C Programming Guide (Volta section)
+  tools_and_measurement:
+    - Nsight Compute Metrics Guide
+  academic_references:
+    - "Dissecting the NVIDIA Volta GPU Architecture, microbenchmark studies"
