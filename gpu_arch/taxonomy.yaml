@@ -1,0 +1,160 @@
+schema_version: 1.0
+
+objective: >
+  Establish a unified taxonomy of modern GPU architectures relevant to
+  machine learning workloads. This taxonomy standardizes terminology
+  across vendors and defines the architectural dimensions analyzed
+  throughout this repository.
+
+scope:
+  vendors:
+    - NVIDIA
+    - AMD
+    - Intel
+  workload_focus:
+    - Dense GEMM
+    - Attention (Prefill and Decode)
+    - Convolutional Neural Networks
+    - Elementwise and Reduction Kernels
+
+# ------------------------------------------------------------
+# Vendor and Generation Index
+# ------------------------------------------------------------
+
+vendors:
+  NVIDIA:
+    execution_model: SIMT
+    generations:
+      - name: Volta
+        code: SM70
+        launch_year: 2017
+      - name: Ampere
+        code: SM80
+        launch_year: 2020
+      - name: Hopper
+        code: SM90
+        launch_year: 2022
+
+  AMD:
+    execution_model: SIMT
+    generations:
+      - name: CDNA1
+        launch_year: 2020
+      - name: CDNA2
+        launch_year: 2021
+      - name: CDNA3
+        launch_year: 2023
+
+  Intel:
+    execution_model: SIMD + SIMT hybrid
+    generations:
+      - name: Xe-HP
+        launch_year: 2021
+      - name: Xe-HPC
+        launch_year: 2022
+
+# ------------------------------------------------------------
+# Compute Hierarchy Taxonomy
+# ------------------------------------------------------------
+
+compute_hierarchy:
+  processing_unit:
+    NVIDIA: Streaming Multiprocessor (SM)
+    AMD: Compute Unit (CU)
+    Intel: Execution Unit Group (EU / Xe Core)
+
+  thread_group:
+    NVIDIA:
+      name: Warp
+      width: 32
+    AMD:
+      name: Wavefront
+      width: 64
+    Intel:
+      name: SIMD Group
+      width: 8-16
+
+  scheduling:
+    concepts:
+      - Warp/Wavefront scheduling
+      - Independent thread issue
+      - Scoreboarding and dependency tracking
+
+# ------------------------------------------------------------
+# Matrix / Tensor Acceleration Units
+# ------------------------------------------------------------
+
+matrix_units:
+  NVIDIA:
+    names:
+      - Tensor Cores
+    programming_models:
+      - WMMA
+      - MMA (PTX)
+      - WGMMA (Hopper)
+
+  AMD:
+    names:
+      - Matrix Cores
+    programming_models:
+      - MFMA instructions
+
+  Intel:
+    names:
+      - XMX
+    programming_models:
+      - DPAS instructions
+
+# ------------------------------------------------------------
+# Memory Hierarchy Taxonomy
+# ------------------------------------------------------------
+
+memory_hierarchy:
+  levels:
+    - Registers
+    - Shared / Local Memory
+    - L1 Cache
+    - L2 Cache
+    - Device Memory (HBM / GDDR)
+
+  characteristics:
+    - Bandwidth hierarchy
+    - Latency hierarchy
+    - Software-managed vs hardware-managed caching
+
+# ------------------------------------------------------------
+# Instruction Set Architecture (ISA) Features
+# ------------------------------------------------------------
+
+isa_features:
+  categories:
+    matrix_math:
+      - Matrix multiply-accumulate (MMA)
+      - Fused multiply-add (FMA)
+    memory:
+      - Asynchronous copy
+      - Cache bypass / cache control
+    synchronization:
+      - Warp-level primitives
+      - Barrier and fence operations
+
+# ------------------------------------------------------------
+# Performance Modeling Axes
+# ------------------------------------------------------------
+
+performance_axes:
+  - Compute throughput (FLOPS / OPS)
+  - Memory bandwidth
+  - Memory latency
+  - Occupancy
+  - Instruction-level parallelism
+
+# ------------------------------------------------------------
+# Source Classes
+# ------------------------------------------------------------
+
+source_classes:
+  - Official vendor architecture whitepapers
+  - Vendor programming guides (CUDA, ROCm, oneAPI)
+  - Peer-reviewed microbenchmark studies
+  - Profiling tool documentation (Nsight Compute, rocprof)
