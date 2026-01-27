@@ -1,0 +1,167 @@
+schema_version: 1.0
+
+architecture:
+  vendor: NVIDIA
+  name: Ampere
+  compute_capability: 8.0
+  launch_year: 2020
+  primary_products:
+    - A100
+
+objective: >
+  Document the NVIDIA Ampere GPU microarchitecture as an instantiation
+  of the unified GPU taxonomy, highlighting advances in tensor
+  computation, memory movement, and instruction-level parallelism
+  for modern ML workloads.
+
+# ------------------------------------------------------------
+# Compute Hierarchy
+# ------------------------------------------------------------
+
+compute_hierarchy:
+  processing_unit:
+    name: Streaming Multiprocessor (SM)
+    count_per_gpu: 108               # A100 SXM4
+    cores_per_sm:
+      fp32_cores: 128                # Dual FP32 datapaths
+      fp64_cores: 64
+      int32_cores: 64
+
+  thread_group:
+    name: Warp
+    width: 32
+    scheduling:
+      warp_schedulers_per_sm: 4
+      dispatch_units_per_sm: 8
+      issue_model: Independent thread scheduling
+      dual_issue_fp32: true
+
+# ------------------------------------------------------------
+# Matrix / Tensor Acceleration Units
+# ------------------------------------------------------------
+
+matrix_units:
+  name: Tensor Cores
+  generation: Third-generation Tensor Cores
+  units_per_sm: 4
+  operations_supported:
+    - D = A × B + C
+    - Structured sparse MMA (2:4)
+
+  supported_precisions:
+    dense:
+      - FP16
+      - BF16
+      - TF32
+      - INT8
+      - INT4
+    sparse:
+      - FP16
+      - BF16
+      - TF32
+      - INT8
+
+  peak_tensor_throughput:
+    dense:
+      tf32: 156 TFLOPS
+      fp16: 312 TFLOPS
+      int8: 624 TOPS
+    sparse:
+      tf32: 312 TFLOPS
+      fp16: 624 TFLOPS
+      int8: 1248 TOPS
+
+  programming_interfaces:
+    - CUDA WMMA API
+    - CUDA MMA API
+    - PTX MMA instructions
+
+# ------------------------------------------------------------
+# Memory Hierarchy
+# ------------------------------------------------------------
+
+memory_hierarchy:
+  registers:
+    register_file_size_per_sm: 256 KB
+    max_registers_per_thread: 255
+
+  shared_memory:
+    size_per_sm: 164 KB
+    unified_l1_shared: true
+    bank_width: 4 bytes
+
+  l1_cache:
+    unified_with_shared: true
+    cache_line_size: 128 bytes
+
+  l2_cache:
+    total_size: 40 MB
+    cache_line_size: 64 bytes
+
+  device_memory:
+    type: HBM2e
+    capacity: 40 GB
+    bandwidth: 1555 GB/s
+
+# ------------------------------------------------------------
+# Instruction Set Architecture Features
+# ------------------------------------------------------------
+
+isa_features:
+  matrix_math:
+    - MMA instructions (TF32, FP16, BF16, INT8, INT4)
+    - Sparse MMA instructions
+
+  memory:
+    - cp.async (asynchronous shared memory copies)
+    - Bulk asynchronous memory pipelines
+    - Coalesced global memory access
+
+  synchronization:
+    - Cooperative Groups
+    - Warp-level primitives (__shfl, __syncwarp)
+    - Asynchronous barriers (mbarrier)
+
+# ------------------------------------------------------------
+# Performance Characteristics
+# ------------------------------------------------------------
+
+performance_characteristics:
+  compute_throughput:
+    fp32_peak: 19.5 TFLOPS
+    fp64_peak: 9.7 TFLOPS
+
+  memory_system:
+    l2_bandwidth: Significantly increased to reduce HBM pressure
+    hbm_bandwidth: Primary bottleneck for memory-bound kernels
+
+  occupancy_factors:
+    max_threads_per_sm: 2048
+    max_warps_per_sm: 64
+    max_blocks_per_sm: 32
+
+# ------------------------------------------------------------
+# Architectural Innovations (Relative to Volta)
+# ------------------------------------------------------------
+
+architectural_innovations:
+  - TF32 format enabling transparent acceleration of FP32 workloads
+  - Asynchronous shared memory copies (cp.async)
+  - Structured sparsity acceleration (2:4)
+  - Dual FP32 execution pipelines
+  - Dramatically enlarged L2 cache
+
+# ------------------------------------------------------------
+# Source Attribution
+# ------------------------------------------------------------
+
+sources:
+  official_documents:
+    - NVIDIA Ampere Architecture Whitepaper
+    - NVIDIA A100 GPU Datasheet
+    - CUDA C Programming Guide (Ampere section)
+    - PTX ISA Documentation (SM80)
+  tools_and_measurement:
+    - Nsight Compute Metrics Guide
+  academic_references:
+    - NVIDIA A100 Deep Learning Performance Guide
