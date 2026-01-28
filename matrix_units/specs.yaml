@@ -1,0 +1,184 @@
+schema_version: 1.0
+
+objective: >
+  Catalog specialized matrix multiplication hardware across GPU
+  architectures, detailing supported precisions, tile shapes,
+  programming models, and theoretical throughput for ML workloads.
+
+# NVIDIA MATRIX UNITS
+
+nvidia:
+  volta:
+    architecture: Volta (SM70)
+    matrix_unit:
+      name: Tensor Core
+      generation: 1
+      units_per_sm: 8
+
+      operations:
+        - D = A × B + C
+
+      supported_formats:
+        input:
+          - FP16
+        accumulate:
+          - FP32
+
+      tile_shapes:
+        - M: 16
+          N: 16
+          K: 16
+
+      programming_model:
+        - WMMA (CUDA)
+        - PTX HMMA
+
+      peak_throughput:
+        fp16:
+          v100_sxm2: 125 TFLOPS
+
+      notes:
+        - First hardware-accelerated matrix unit in NVIDIA GPUs
+        - Accumulation performed in FP32
+
+      sources:
+        - NVIDIA Volta Architecture Whitepaper
+        - CUDA WMMA Programming Guide
+
+  ampere:
+    architecture: Ampere (SM80)
+    matrix_unit:
+      name: Tensor Core
+      generation: 3
+      units_per_sm: 4
+
+      operations:
+        - D = A × B + C
+        - Structured sparse MMA (2:4)
+
+      supported_formats:
+        dense:
+          input:
+            - FP16
+            - BF16
+            - TF32
+            - INT8
+            - INT4
+          accumulate:
+            - FP32
+        sparse:
+          input:
+            - FP16
+            - BF16
+            - TF32
+            - INT8
+          accumulate:
+            - FP32
+
+      tile_shapes:
+        - M: 16
+          N: 8
+          K: 16
+        - M: 16
+          N: 16
+          K: 16
+
+      programming_model:
+        - WMMA (CUDA)
+        - MMA (CUDA)
+        - PTX MMA
+
+      peak_throughput:
+        dense:
+          tf32:
+            a100_sxm4: 156 TFLOPS
+          fp16:
+            a100_sxm4: 312 TFLOPS
+          int8:
+            a100_sxm4: 624 TOPS
+        sparse:
+          tf32:
+            a100_sxm4: 312 TFLOPS
+          fp16:
+            a100_sxm4: 624 TFLOPS
+          int8:
+            a100_sxm4: 1248 TOPS
+
+      notes:
+        - TF32 enables transparent acceleration of FP32 GEMMs
+        - Structured sparsity doubles effective throughput
+
+      sources:
+        - NVIDIA Ampere Architecture Whitepaper
+        - NVIDIA A100 Tensor Core Performance Guide
+
+  hopper:
+    architecture: Hopper (SM90)
+    matrix_unit:
+      name: Tensor Core
+      generation: 4
+      units_per_sm: 4
+
+      operations:
+        - D = A × B + C
+        - Transformer Engine mixed-precision MMA
+
+      supported_formats:
+        dense:
+          input:
+            - FP8 (E4M3)
+            - FP8 (E5M2)
+            - FP16
+            - BF16
+            - TF32
+            - FP32
+          accumulate:
+            - FP32
+        sparse:
+          input:
+            - FP8
+            - FP16
+            - BF16
+            - TF32
+          accumulate:
+            - FP32
+
+      tile_shapes:
+        - M: 16
+          N: 16
+          K: 16
+
+      programming_model:
+        - MMA (CUDA)
+        - PTX MMA
+        - Transformer Engine
+
+      peak_throughput:
+        dense:
+          fp8:
+            h100_sxm: 1000+ TFLOPS
+          fp16:
+            h100_sxm: 1000+ TFLOPS
+        sparse:
+          fp8:
+            h100_sxm: 2000+ TFLOPS
+
+      notes:
+        - FP8 designed specifically for transformer workloads
+        - Transformer Engine dynamically selects precision
+
+      sources:
+        - NVIDIA Hopper Architecture Whitepaper
+        - NVIDIA H100 Transformer Engine Technical Overview
+
+# PLACEHOLDERS FOR OTHER VENDORS
+
+amd:
+  cdna:
+    status: TODO
+    note: To be filled with Matrix Core specifications from CDNA1–CDNA3
+
+intel:
+  xmx:
+    status: TODO
+    note: To be filled with Intel XMX engine specifications
