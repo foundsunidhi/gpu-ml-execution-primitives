@@ -1,0 +1,11 @@
+benchmark_id,access_pattern,data_type,working_set_size_mb,stride_bytes,expected_cache_level,theoretical_bandwidth_gbps,measured_bandwidth_gbps,l2_hit_rate_percent,dram_throughput_gbps,primary_bottleneck,profiling_tool,notes,sources
+GMEM_COALESCED_FP16,coalesced,FP16,1024,2,L2/HBM,1555,,,"",Memory bandwidth,Nsight Compute,Contiguous vectorized loads using ld.global.v4,NVIDIA CUDA Programming Guide; A100 Datasheet
+GMEM_COALESCED_FP32,coalesced,FP32,1024,4,L2/HBM,1555,,,"",Memory bandwidth,Nsight Compute,Ideal GEMM-like access pattern,Nsight Compute Memory Metrics Guide
+GMEM_STRIDED_32B,strided,FP32,1024,32,L2,800,,,"",Uncoalesced access,Nsight Compute,Each thread accesses different cache line,CUDA Best Practices Guide
+GMEM_STRIDED_128B,strided,FP32,1024,128,HBM,400,,,"",HBM latency,Nsight Compute,One transaction per thread,CUDA Memory Optimization Guide
+GMEM_RANDOM,random,FP32,1024,random,HBM,200,,,"",Memory latency,Nsight Compute,Simulates embedding lookup,Sparse GPU Computation Literature
+SMEM_BANK_FREE,shared_memory,FP16,64,2,Shared,NA,,,"",None,Nsight Compute,Conflict-free shared memory access,CUDA Shared Memory Documentation
+SMEM_BANK_CONFLICT,shared_memory,FP16,64,2,Shared,NA,,,"",Shared memory bank conflicts,Nsight Compute,All threads hit same bank,NVIDIA GPU Memory Optimization Guide
+L2_REUSE_TILE,coalesced,FP16,256,2,L2,NA,,,"",Compute-bound,Nsight Compute,Tile reused across multiple warps,Ampere/Hopper Whitepapers
+HBM_STREAMING,streaming,FP32,8192,4,HBM,1555,,,"",HBM bandwidth,Nsight Compute,Streaming access with no reuse,GPU Memory System Literature
+ASYNC_PREFETCH,coalesced,FP16,1024,2,L2/HBM,1555,,,"",Pipeline imbalance,Nsight Compute,cp.async enabled kernel,Ampere Architecture Whitepaper
