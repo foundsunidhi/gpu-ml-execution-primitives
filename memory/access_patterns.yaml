@@ -1,0 +1,189 @@
+schema_version: 1.0
+
+objective: >
+  Catalog canonical GPU memory access patterns, their interaction with
+  the GPU memory hierarchy, and the resulting performance implications
+  for ML kernels such as GEMM and Attention.
+
+# GLOBAL MEMORY ACCESS PATTERNS
+
+global_memory:
+  coalesced:
+    description: >
+      Threads within a warp access contiguous memory addresses that map
+      to the same cache line or adjacent cache lines.
+    access_granularity:
+      warp_width: 32
+      transaction_size: 128 bytes
+    performance_characteristics:
+      - Maximizes memory throughput
+      - Minimizes number of memory transactions
+    typical_use_cases:
+      - Dense matrix loads in GEMM
+      - Vectorized tensor loads
+    profiler_indicators:
+      - High global load efficiency
+      - Achieved bandwidth near theoretical peak
+    optimizations:
+      - Vectorized loads (ld.global.v4)
+      - Structure-of-arrays (SoA) layout
+    sources:
+      - NVIDIA CUDA Programming Guide
+      - Nsight Compute Memory Metrics Guide
+
+  strided:
+    description: >
+      Threads access memory with a fixed stride greater than the element
+      size, resulting in multiple memory transactions per warp.
+    performance_characteristics:
+      - Reduced memory efficiency
+      - Increased transaction count
+    typical_use_cases:
+      - Column-major access on row-major data
+      - Poorly tiled matrix operations
+    profiler_indicators:
+      - Low global load efficiency
+      - High memory transaction count
+    mitigations:
+      - Data layout transformation
+      - Shared memory staging
+    sources:
+      - CUDA Best Practices Guide
+
+  random:
+    description: >
+      Threads access non-contiguous, unpredictable memory addresses.
+    performance_characteristics:
+      - Very low cache hit rate
+      - Serialization of memory accesses
+    typical_use_cases:
+      - Embedding lookups
+      - Sparse tensor operations
+    mitigations:
+      - Software caching
+      - Reordering indices
+    sources:
+      - GPU Sparse Computation Literature
+
+# SHARED MEMORY ACCESS PATTERNS
+
+shared_memory:
+  bank_conflict_free:
+    description: >
+      Each thread accesses a different shared memory bank, allowing
+      parallel access.
+    bank_structure:
+      banks: 32
+      bank_width: 4 bytes
+    performance_characteristics:
+      - Single-cycle access latency
+    typical_use_cases:
+      - Tiled GEMM
+      - Shared memory reductions
+    profiler_indicators:
+      - Low smem bank conflict metrics
+    sources:
+      - CUDA Shared Memory Documentation
+
+  bank_conflict:
+    description: >
+      Multiple threads access the same shared memory bank, causing
+      serialized accesses.
+    performance_characteristics:
+      - Increased latency
+      - Reduced throughput
+    typical_use_cases:
+      - Improperly padded shared memory arrays
+    mitigations:
+      - Padding shared memory
+      - Swizzled layouts
+    sources:
+      - NVIDIA GPU Memory Optimization Guide
+
+# CACHE BEHAVIOR PATTERNS
+
+cache_behavior:
+  l1_hit:
+    description: >
+      Data reused within the same SM, served from L1 cache or shared
+      memory.
+    performance_characteristics:
+      - Low latency
+      - Reduced global memory traffic
+    typical_use_cases:
+      - Reused matrix tiles
+      - Activation reuse
+    sources:
+      - CUDA Cache Hierarchy Documentation
+
+  l2_hit:
+    description: >
+      Data reused across SMs and served from L2 cache.
+    performance_characteristics:
+      - Moderate latency
+      - Reduced HBM pressure
+    architectural_notes:
+      - L2 size increased significantly in Ampere and Hopper
+    sources:
+      - NVIDIA Ampere and Hopper Whitepapers
+
+  hbm_access:
+    description: >
+      Data fetched from off-chip high-bandwidth memory (HBM).
+    performance_characteristics:
+      - High latency
+      - High bandwidth
+    typical_use_cases:
+      - First access to large tensors
+      - Streaming workloads
+    sources:
+      - GPU Memory System Literature
+
+# OCCUPANCY AND LATENCY HIDING
+
+latency_hiding:
+  warp_scheduling:
+    description: >
+      GPU hides memory latency by switching between ready warps while
+      others wait for memory.
+    requirements:
+      - Sufficient number of active warps
+    performance_characteristics:
+      - Latency hidden through parallelism
+    sources:
+      - CUDA Programming Guide
+
+  occupancy_tradeoffs:
+    description: >
+      Increasing register or shared memory usage reduces occupancy,
+      potentially exposing memory latency.
+    tradeoff_examples:
+      - Larger tiles increase arithmetic intensity but reduce occupancy
+    sources:
+      - GPU Occupancy Analysis Guides
+
+# PREFETCHING AND ASYNCHRONOUS ACCESS
+
+prefetching:
+  synchronous:
+    description: >
+      Memory loads block execution until data arrives.
+    architectures:
+      - Volta and earlier
+    performance_characteristics:
+      - Limited latency hiding
+    sources:
+      - Volta Architecture Whitepaper
+
+  asynchronous:
+    description: >
+      Memory loads overlap with computation using asynchronous copy
+      mechanisms.
+    architectures:
+      - Ampere (cp.async)
+      - Hopper (TMA)
+    performance_characteristics:
+      - Reduced pipeline stalls
+      - Higher sustained throughput
+    sources:
+      - NVIDIA Ampere and Hopper Whitepapers
