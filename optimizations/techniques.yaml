@@ -1,0 +1,138 @@
+optimizations:
+
+  - name: Thread Block Tiling
+    category: Tiling
+    problem_addressed: Global memory bandwidth pressure and poor data reuse
+    hardware_principle: Cache locality, shared memory reuse, reduced DRAM transactions
+    implementation_summary: |
+      Matrices are partitioned into tiles mapped to thread blocks.
+      Each tile is loaded from global memory into shared memory once,
+      then reused by all threads in the block for multiple computations.
+    typical_performance_gain: 3–10× speedup over naive GEMM
+    applicability: Dense linear algebra (GEMM, convolution, attention)
+    used_in:
+      - cuBLAS
+      - CUTLASS
+      - Triton
+    cpu_implications: |
+      Analogous to cache blocking in CPU GEMM.
+      Highlights importance of explicit data locality control beyond compiler auto-vectorization.
+    sources:
+      - NVIDIA CUDA Programming Guide
+      - CUTLASS GEMM Design Documentation
+
+  - name: Register Blocking
+    category: Register Optimization
+    problem_addressed: Excessive shared/global memory accesses per instruction
+    hardware_principle: High-bandwidth, low-latency register file
+    implementation_summary: |
+      Each thread computes a small sub-tile of the output matrix,
+      storing intermediate results entirely in registers before final writeback.
+    typical_performance_gain: 1.5–3× improvement within tiled kernels
+    applicability: Compute-heavy kernels with high arithmetic intensity
+    used_in:
+      - CUTLASS
+      - cuBLAS
+    cpu_implications: |
+      Comparable to register tiling and unrolling in CPU kernels.
+      Reinforces the need for register pressure-aware scheduling.
+    sources:
+      - CUTLASS Source Code
+      - Volta and Ampere Tuning Guides
+
+  - name: Double Buffering (Ping-Pong Buffers)
+    category: Latency Hiding
+    problem_addressed: Memory latency stalls between tile loads
+    hardware_principle: Overlapping memory operations with computation
+    implementation_summary: |
+      Two shared memory buffers are used.
+      While computation occurs on one tile, the next tile is prefetched
+      into the alternate buffer asynchronously.
+    typical_performance_gain: 1.3–2× in memory-latency-bound kernels
+    applicability: GEMM, attention, stencil computations
+    used_in:
+      - CUTLASS
+      - FlashAttention
+    cpu_implications: |
+      Mirrors software pipelining and prefetching on CPUs.
+      Suggests need for explicit asynchronous memory primitives in CPU inference runtimes.
+    sources:
+      - NVIDIA Ampere Architecture Whitepaper
+      - FlashAttention Paper
+
+  - name: Vectorized Memory Loads
+    category: Memory Access
+    problem_addressed: Inefficient memory transactions and poor bandwidth utilization
+    hardware_principle: Memory coalescing and wide memory transactions
+    implementation_summary: |
+      Threads load multiple contiguous elements per instruction
+      using vector types (e.g., float4, half2) to maximize DRAM efficiency.
+    typical_performance_gain: 1.2–2× memory throughput improvement
+    applicability: All bandwidth-bound kernels
+    used_in:
+      - cuBLAS
+      - Triton
+      - FlashAttention
+    cpu_implications: |
+      Equivalent to SIMD vector loads (AVX/NEON).
+      Highlights importance of alignment and data layout for CPU inference.
+    sources:
+      - CUDA Best Practices Guide
+      - Triton Compiler Documentation
+
+  - name: Warp-Level Primitives (Shuffles)
+    category: Warp Communication
+    problem_addressed: Shared memory overhead for intra-warp data exchange
+    hardware_principle: Warp-synchronous execution
+    implementation_summary: |
+      Uses warp shuffle instructions to exchange values between threads
+      without shared memory or synchronization.
+    typical_performance_gain: 1.1–1.5× and reduced latency
+    applicability: Reductions, softmax, attention score accumulation
+    used_in:
+      - FlashAttention
+      - CUTLASS
+    cpu_implications: |
+      Comparable to lane-crossing SIMD operations.
+      Suggests tighter integration of SIMD lane communication in CPU ISAs.
+    sources:
+      - PTX ISA Documentation
+      - FlashAttention Implementation Notes
+
+  - name: Persistent Kernels
+    category: Scheduling
+    problem_addressed: Kernel launch overhead and load imbalance
+    hardware_principle: Long-lived thread blocks and software scheduling
+    implementation_summary: |
+      A fixed set of thread blocks remains resident on the GPU,
+      dynamically pulling work from global queues.
+    typical_performance_gain: 1.2–2× for irregular or small workloads
+    applicability: Inference, reductions, dynamic workloads
+    used_in:
+      - Inference engines
+      - Custom CUDA kernels
+    cpu_implications: |
+      Similar to thread pools and work-stealing schedulers.
+      Suggests persistent execution models for low-latency CPU inference.
+    sources:
+      - GPU Persistent Kernel Literature
+      - NVIDIA GTC Talks
+
+  - name: Asynchronous Shared Memory Prefetch (cp.async)
+    category: Memory Pipeline
+    problem_addressed: Shared memory load latency
+    hardware_principle: Hardware-supported asynchronous memory operations
+    implementation_summary: |
+      Uses cp.async instructions to preload data from global
+      to shared memory without stalling computation.
+    typical_performance_gain: 1.3–2× on Ampere and newer GPUs
+    applicability: Tensor Core kernels, attention
+    used_in:
+      - CUTLASS
+      - FlashAttention
+    cpu_implications: |
+      No direct CPU equivalent today.
+      Motivates research into explicit async memory instructions for CPUs.
+    sources:
+      - NVIDIA Ampere Architecture Whitepaper
+      - CUTLASS Async Pipeline Docs
